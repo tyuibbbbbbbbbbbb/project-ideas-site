@@ -26,11 +26,17 @@ function saveData(data) {
 function normalize(idea) {
   return {
     category: 'אחר',
+    imageUrl: null,
     progress: 'open',
     takenBy: null,
     voters: {},
     ...idea,
   };
+}
+
+function buildImageUrl(title, description, category) {
+  const prompt = `הדמיה של הפרויקט: ${title}. ${description || ''} (${category || ''}) - concept mockup, clean modern design`;
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=800&height=400&nologo=true`;
 }
 
 app.get('/api/categories', (req, res) => {
@@ -59,7 +65,7 @@ app.get('/api/review', (req, res) => {
 });
 
 app.post('/api/ideas', (req, res) => {
-  const { title, description, author, category } = req.body;
+  const { title, description, author, category, withImage } = req.body;
   if (!title || !title.trim()) {
     return res.status(400).json({ error: 'חובה למלא כותרת' });
   }
@@ -70,6 +76,7 @@ app.post('/api/ideas', (req, res) => {
     description: (description || '').trim(),
     author: (author || 'אנונימי').trim() || 'אנונימי',
     category: CATEGORIES.includes(category) ? category : 'אחר',
+    imageUrl: withImage ? buildImageUrl(title, description, category) : null,
     progress: 'open',
     takenBy: null,
     likes: 0,

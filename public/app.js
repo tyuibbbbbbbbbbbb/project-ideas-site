@@ -59,8 +59,12 @@ function renderCard(idea, index, withVotes) {
         <span class="score">ניקוד: ${idea.likes - idea.dislikes}</span>
       </div>`
     : `<div class="votes"><span>👍 ${idea.likes} · 👎 ${idea.dislikes}</span></div>`;
+  const image = idea.imageUrl
+    ? `<img class="idea-img" src="${escapeHtml(idea.imageUrl)}" alt="הדמיה של הרעיון" loading="lazy" onerror="this.remove()" />`
+    : '';
   return `<div class="idea-card${withVotes && index === 0 ? ' top' : ''}${idea.progress === 'done' ? ' done' : ''}">
     <h3>${escapeHtml(idea.title)}${topBadge}${catBadge}${progressBadge}</h3>
+    ${image}
     ${idea.description ? `<p class="desc">${escapeHtml(idea.description)}</p>` : ''}
     <p class="meta">מאת: ${escapeHtml(idea.author)} · ${new Date(idea.createdAt).toLocaleDateString('he-IL')}</p>
     ${votes}
@@ -98,6 +102,7 @@ form.addEventListener('submit', async (e) => {
       description: document.getElementById('description').value,
       author: document.getElementById('author').value,
       category: categorySelect.value,
+      withImage: document.getElementById('with-image').checked,
     }),
   });
   if (res.ok) {
