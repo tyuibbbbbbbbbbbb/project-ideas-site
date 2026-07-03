@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>אתר הפרויקטים - נבנה ביחד</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>💡 אתר הפרויקטים</h1>
+    <p>יש לך רעיון אבל אין לך זמן או ידע לפתח אותו? שתף אותו כאן! מחפש פרויקט לעבוד עליו? קח רעיון מהרשימה!</p>
+  </header>
+
+  <main>
+    <section class="add-idea">
+      <h2>הוסף רעיון חדש</h2>
+      <form id="idea-form">
+        <input type="text" id="title" placeholder="כותרת הרעיון *" required maxlength="100" />
+        <textarea id="description" placeholder="תיאור הרעיון..." maxlength="1000"></textarea>
+        <input type="text" id="author" placeholder="השם שלך (לא חובה)" maxlength="50" />
+        <button type="submit">פרסם רעיון 🚀</button>
+      </form>
+    </section>
+
+    <section class="ideas">
+      <h2>רעיונות לפרויקטים <span class="hint">(ממוינים לפי הצבעות)</span></h2>
+      <div id="ideas-list"></div>
+      <p id="empty-msg" class="empty" hidden>עדיין אין רעיונות. תהיה הראשון! 🎉</p>
+    </section>
+
+    <section class="review">
+      <h2>⚠️ בבדיקה (מעל 10 דיסלייקים)</h2>
+      <div id="review-list"></div>
+      <p id="review-empty" class="empty" hidden>אין רעיונות בבדיקה</p>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
