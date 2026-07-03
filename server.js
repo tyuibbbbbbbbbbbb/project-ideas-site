@@ -76,7 +76,7 @@ app.post('/api/ideas', (req, res) => {
     description: (description || '').trim(),
     author: (author || 'אנונימי').trim() || 'אנונימי',
     category: CATEGORIES.includes(category) ? category : 'אחר',
-    imageUrl: withImage ? buildImageUrl(title, description, category) : null,
+    imageUrl: withImage === false ? null : buildImageUrl(title, description, category),
     progress: 'open',
     takenBy: null,
     likes: 0,
@@ -152,6 +152,58 @@ app.post('/api/ideas/:id/done', (req, res) => {
   saveData(data);
   const { voters, ...out } = idea;
   res.json(out);
+});
+
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin1234';
+
+function requireAdmin(req, res, next) {
+  if (req.headers['x-admin-password'] !== ADMIN_PASSWORD) {
+    return res.status(401).json({ error: 'סיסמה שגויה' });
+  }
+  next();
+}
+
+app.post('/api/admin/login', (req, res) => {
+  if (req.body.password !== ADMIN_PASSWORD) {
+    return res.status(401).json({ error: 'סיסמה שגויה' });
+  }
+  res.json({ ok: true });
+});
+
+app.get('/api/admin/ideas', requireAdmin, (req, res) => {
+  const data = loadData();
+  res.json(data.ideas.map(normalize).map(({ voters, ...i }) => i));
+});
+
+app.put('/api/admin/ideas/:id', requireAdmin, (req, res) => {
+  const data = loadData();
+  const idx = data.ideas.findIndex((i) => i.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'הרעיון לא נמצא' });
+  const idea = normalize(data.ideas[idx]);
+  const { title, description, author, category, progress, takenBy, status, likes, dislikes, imageUrl } = req.body;
+  if (title !== undefined) idea.title = String(title).trim();
+  if (description !== undefined) idea.description = String(description).trim();
+  if (author !== undefined) idea.author = String(author).trim() || 'אנונימי';
+  if (category !== undefined && CATEGORIES.includes(category)) idea.category = category;
+  if (progress !== undefined && ['open', 'taken', 'done'].includes(progress)) idea.progress = progress;
+  if (takenBy !== undefined) idea.takenBy = takenBy ? String(takenBy).trim() : null;
+  if (status !== undefined && ['active', 'review'].includes(status)) idea.status = status;
+  if (likes !== undefined && Number.isInteger(likes) && likes >= 0) idea.likes = likes;
+  if (dislikes !== undefined && Number.isInteger(dislikes) && dislikes >= 0) idea.dislikes = dislikes;
+  if (imageUrl !== undefined) idea.imageUrl = imageUrl || null;
+  data.ideas[idx] = idea;
+  saveData(data);
+  const { voters, ...out } = idea;
+  res.json(out);
+});
+
+app.delete('/api/admin/ideas/:id', requireAdmin, (req, res) => {
+  const data = loadData();
+  const idx = data.ideas.findIndex((i) => i.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ error: 'הרעיון לא נמצא' });
+  data.ideas.splice(idx, 1);
+  saveData(data);
+  res.json({ ok: true });
 });
 
 app.listen(PORT, () => {

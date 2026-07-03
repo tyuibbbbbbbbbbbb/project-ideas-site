@@ -102,7 +102,6 @@ form.addEventListener('submit', async (e) => {
       description: document.getElementById('description').value,
       author: document.getElementById('author').value,
       category: categorySelect.value,
-      withImage: document.getElementById('with-image').checked,
     }),
   });
   if (res.ok) {

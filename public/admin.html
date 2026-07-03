@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ניהול - אתר הפרויקטים</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .admin-table { width: 100%; }
+    .admin-card { border: 1px solid #e8e8e8; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+    .admin-card input, .admin-card textarea, .admin-card select { width: 100%; margin-bottom: 8px; }
+    .admin-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .admin-row > * { flex: 1; min-width: 120px; }
+    .admin-actions { display: flex; gap: 8px; margin-top: 8px; }
+    .save-btn { background: #4caf50; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; cursor: pointer; font-family: inherit; }
+    .del-btn { background: #e53935; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; cursor: pointer; font-family: inherit; }
+    .small { font-size: 0.8rem; color: #888; }
+    #login-section input { margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🔧 ניהול אתר הפרויקטים</h1>
+    <p><a href="/" style="color:#fff">→ חזרה לאתר</a></p>
+  </header>
+
+  <main>
+    <section id="login-section">
+      <h2>כניסת מנהל</h2>
+      <form id="login-form">
+        <input type="password" id="password" placeholder="סיסמת ניהול" required />
+        <button type="submit">כניסה</button>
+      </form>
+    </section>
+
+    <section id="admin-section" hidden>
+      <h2>כל הרעיונות</h2>
+      <div id="admin-list"></div>
+      <p id="admin-empty" class="empty" hidden>אין רעיונות</p>
+    </section>
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>
