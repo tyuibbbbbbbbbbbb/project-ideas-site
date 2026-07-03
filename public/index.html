@@ -18,6 +18,7 @@
       <form id="idea-form">
         <input type="text" id="title" placeholder="כותרת הרעיון *" required maxlength="100" />
         <textarea id="description" placeholder="תיאור הרעיון..." maxlength="1000"></textarea>
+        <select id="category"></select>
         <input type="text" id="author" placeholder="השם שלך (לא חובה)" maxlength="50" />
         <button type="submit">פרסם רעיון 🚀</button>
       </form>
@@ -25,6 +26,7 @@
 
     <section class="ideas">
       <h2>רעיונות לפרויקטים <span class="hint">(ממוינים לפי הצבעות)</span></h2>
+      <div id="filter-bar" class="filter-bar"></div>
       <div id="ideas-list"></div>
       <p id="empty-msg" class="empty" hidden>עדיין אין רעיונות. תהיה הראשון! 🎉</p>
     </section>

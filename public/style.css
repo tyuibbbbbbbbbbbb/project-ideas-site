@@ -103,6 +103,60 @@ button[type="submit"]:hover { opacity: 0.9; }
 
 .empty { color: #999; text-align: center; padding: 12px; }
 
+select {
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  background: #fff;
+}
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.filter-btn {
+  border: 1px solid #ddd;
+  background: #f7f7f7;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.filter-btn.active {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  border-color: transparent;
+}
+
+.take-btn, .done-btn {
+  border: 1px solid #ddd;
+  background: #eef2ff;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.done-btn { background: #e6f9e6; }
+.take-btn:hover, .done-btn:hover { transform: scale(1.05); }
+
+.vote-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.vote-btn.voted { border-color: #667eea; background: #eef2ff; }
+
+.idea-card.done { opacity: 0.75; background: #f6fff6; }
+
+.badge.cat { background: #e0e7ff; color: #3b4bb8; }
+.badge.progress-taken { background: #ffe6c7; }
+.badge.progress-done { background: #c9f2c9; }
+
 .badge {
   display: inline-block;
   background: #ffd700;
