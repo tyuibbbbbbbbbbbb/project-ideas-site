@@ -3,12 +3,19 @@ const adminSection = document.getElementById('admin-section');
 const loginForm = document.getElementById('login-form');
 const adminList = document.getElementById('admin-list');
 const adminEmpty = document.getElementById('admin-empty');
+const toast = document.getElementById('toast');
 
 let password = sessionStorage.getItem('adminPassword') || '';
 let categories = [];
 
 function escapeAttr(s) {
   return String(s ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+function showToast(message) {
+  toast.textContent = message;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
 const PROGRESS_OPTIONS = [
@@ -32,24 +39,23 @@ function renderAdminCard(idea) {
     .map(([v, l]) => `<option value="${v}"${v === idea.status ? ' selected' : ''}>${l}</option>`)
     .join('');
   return `<div class="admin-card" data-id="${idea.id}">
-    <input class="f-title" value="${escapeAttr(idea.title)}" placeholder="כותרת" />
-    <textarea class="f-description" placeholder="תיאור">${escapeAttr(idea.description)}</textarea>
-    <div class="admin-row">
-      <input class="f-author" value="${escapeAttr(idea.author)}" placeholder="מאת" />
-      <select class="f-category">${catOptions}</select>
-      <select class="f-progress">${progOptions}</select>
-      <input class="f-takenBy" value="${escapeAttr(idea.takenBy || '')}" placeholder="נלקח ע&quot;י" />
+    <div class="admin-card-title">${escapeAttr(idea.title)}</div>
+    <input class="f-title form-control" value="${escapeAttr(idea.title)}" placeholder="כותרת" />
+    <textarea class="f-description form-control" placeholder="תיאור">${escapeAttr(idea.description)}</textarea>
+    <div class="admin-grid">
+      <input class="f-author form-control" value="${escapeAttr(idea.author)}" placeholder="מאת" />
+      <select class="f-category form-control">${catOptions}</select>
+      <select class="f-progress form-control">${progOptions}</select>
+      <input class="f-takenBy form-control" value="${escapeAttr(idea.takenBy || '')}" placeholder="נלקח ע"י" />
+      <select class="f-status form-control">${statusOptions}</select>
+      <input class="f-likes form-control" type="number" min="0" value="${idea.likes}" title="לייקים" />
+      <input class="f-dislikes form-control" type="number" min="0" value="${idea.dislikes}" title="דיסלייקים" />
+      <input class="f-imageUrl form-control" value="${escapeAttr(idea.imageUrl || '')}" placeholder="קישור לתמונה (ריק = בלי תמונה)" />
     </div>
-    <div class="admin-row">
-      <select class="f-status">${statusOptions}</select>
-      <input class="f-likes" type="number" min="0" value="${idea.likes}" title="לייקים" />
-      <input class="f-dislikes" type="number" min="0" value="${idea.dislikes}" title="דיסלייקים" />
-    </div>
-    <input class="f-imageUrl" value="${escapeAttr(idea.imageUrl || '')}" placeholder="קישור לתמונה (ריק = בלי תמונה)" />
-    <p class="small">נוצר: ${new Date(idea.createdAt).toLocaleString('he-IL')} · 👍 ${idea.likes} · 👎 ${idea.dislikes}</p>
+    <p class="idea-card-meta">נוצר: ${new Date(idea.createdAt).toLocaleString('he-IL')} · 👍 ${idea.likes} · 👎 ${idea.dislikes}</p>
     <div class="admin-actions">
-      <button class="save-btn">💾 שמור</button>
-      <button class="del-btn">🗑️ מחק</button>
+      <button class="btn btn-save save-btn">💾 שמור</button>
+      <button class="btn btn-delete del-btn">🗑️ מחק</button>
     </div>
   </div>`;
 }
@@ -76,9 +82,9 @@ async function loadAdmin() {
   const res = await api('/api/admin/ideas');
   const ideas = await res.json();
   adminList.innerHTML = ideas.map(renderAdminCard).join('');
-  adminEmpty.hidden = ideas.length > 0;
-  loginSection.hidden = true;
-  adminSection.hidden = false;
+  adminEmpty.classList.toggle('hidden', ideas.length > 0);
+  loginSection.classList.add('hidden');
+  adminSection.classList.remove('hidden');
 }
 
 loginForm.addEventListener('submit', async (e) => {
@@ -94,7 +100,7 @@ loginForm.addEventListener('submit', async (e) => {
     sessionStorage.setItem('adminPassword', pw);
     loadAdmin();
   } else {
-    alert('סיסמה שגויה');
+    showToast('סיסמה שגויה');
   }
 });
 
@@ -117,19 +123,21 @@ adminList.addEventListener('click', async (e) => {
     };
     const res = await api(`/api/admin/ideas/${id}`, { method: 'PUT', body: JSON.stringify(body) });
     if (res.ok) {
+      showToast('השינויים נשמרו בהצלחה');
       loadAdmin();
     } else {
       const err = await res.json();
-      alert(err.error || 'שגיאה בשמירה');
+      showToast(err.error || 'שגיאה בשמירה');
     }
   } else if (e.target.closest('.del-btn')) {
     if (!confirm('למחוק את הרעיון לצמיתות?')) return;
     const res = await api(`/api/admin/ideas/${id}`, { method: 'DELETE' });
     if (res.ok) {
+      showToast('הרעיון נמחק');
       loadAdmin();
     } else {
       const err = await res.json();
-      alert(err.error || 'שגיאה במחיקה');
+      showToast(err.error || 'שגיאה במחיקה');
     }
   }
 });

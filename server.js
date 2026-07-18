@@ -44,13 +44,27 @@ app.get('/api/categories', (req, res) => {
 });
 
 app.get('/api/ideas', (req, res) => {
-  const { category } = req.query;
+  const { category, search, sort } = req.query;
   const data = loadData();
   let ideas = data.ideas.map(normalize).filter((i) => i.status === 'active');
   if (category && category !== 'הכול') {
     ideas = ideas.filter((i) => i.category === category);
   }
-  ideas.sort((a, b) => (b.likes - b.dislikes) - (a.likes - a.dislikes));
+  if (search && search.trim()) {
+    const q = search.trim().toLowerCase();
+    ideas = ideas.filter((i) =>
+      i.title.toLowerCase().includes(q) ||
+      (i.description && i.description.toLowerCase().includes(q)) ||
+      (i.author && i.author.toLowerCase().includes(q))
+    );
+  }
+  if (sort === 'newest') {
+    ideas.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  } else if (sort === 'likes') {
+    ideas.sort((a, b) => b.likes - a.likes);
+  } else {
+    ideas.sort((a, b) => (b.likes - b.dislikes) - (a.likes - a.dislikes));
+  }
   res.json(ideas.map(({ voters, ...i }) => i));
 });
 

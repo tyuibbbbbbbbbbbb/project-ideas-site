@@ -4,41 +4,81 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>אתר הפרויקטים - נבנה ביחד</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header>
-    <h1>💡 אתר הפרויקטים</h1>
-    <p>יש לך רעיון אבל אין לך זמן או ידע לפתח אותו? שתף אותו כאן! מחפש פרויקט לעבוד עליו? קח רעיון מהרשימה!</p>
+  <header class="header">
+    <div class="container">
+      <h1>💡 אתר הפרויקטים</h1>
+      <p>יש לך רעיון אבל אין לך זמן או ידע לפתח אותו? שתף אותו כאן! מחפש פרויקט לעבוד עליו? מצא רעיון מהרשימה!</p>
+      <a href="admin.html" class="header-link">🔧 כניסת מנהל</a>
+    </div>
   </header>
 
-  <main>
-    <section class="add-idea">
-      <h2>הוסף רעיון חדש</h2>
-      <form id="idea-form">
-        <input type="text" id="title" placeholder="כותרת הרעיון *" required maxlength="100" />
-        <textarea id="description" placeholder="תיאור הרעיון..." maxlength="1000"></textarea>
-        <select id="category"></select>
-        <input type="text" id="author" placeholder="השם שלך (לא חובה)" maxlength="50" />
-        <p class="hint">🎨 תמונת הדמיה תיווצר אוטומטית עם AI לפי הרעיון</p>
-        <button type="submit">פרסם רעיון 🚀</button>
-      </form>
-    </section>
+  <main class="main">
+    <div class="container main-grid">
+      <aside class="card">
+        <h2 class="card-title">הוסף רעיון חדש</h2>
+        <form id="idea-form" class="idea-form">
+          <div class="form-group">
+            <label for="title">כותרת הרעיון</label>
+            <input type="text" id="title" class="form-control" placeholder="למשל: אפליקציית ניהול משימות" required maxlength="100" />
+          </div>
+          <div class="form-group">
+            <label for="description">תיאור</label>
+            <textarea id="description" class="form-control" placeholder="תאר את הרעיון בקצרה..." maxlength="1000"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="category">קטגוריה</label>
+            <select id="category" class="form-control"></select>
+          </div>
+          <div class="form-group">
+            <label for="author">שם (אופציונלי)</label>
+            <input type="text" id="author" class="form-control" placeholder="השם שלך" maxlength="50" />
+          </div>
+          <p class="form-hint">🎨 תמונת הדמיה תיווצר אוטומטית עם AI</p>
+          <button type="submit" class="btn btn-primary">פרסם רעיון 🚀</button>
+        </form>
+      </aside>
 
-    <section class="ideas">
-      <h2>רעיונות לפרויקטים <span class="hint">(ממוינים לפי הצבעות)</span></h2>
-      <div id="filter-bar" class="filter-bar"></div>
-      <div id="ideas-list"></div>
-      <p id="empty-msg" class="empty" hidden>עדיין אין רעיונות. תהיה הראשון! 🎉</p>
-    </section>
+      <section>
+        <div class="card">
+          <div class="toolbar">
+            <div class="search-box">
+              <input type="text" id="search" class="search-input" placeholder="חיפוש רעיונות..." />
+            </div>
+            <select id="sort" class="sort-select">
+              <option value="top">הכי פופולרי</option>
+              <option value="newest">החדשים ביותר</option>
+              <option value="likes">הכי הרבה לייקים</option>
+            </select>
+          </div>
+          <div id="filter-bar" class="filter-chips"></div>
+          <div id="ideas-list" class="ideas-grid"></div>
+          <div id="empty-msg" class="empty-state hidden">
+            <div class="empty-state-icon">💡</div>
+            <div class="empty-state-title">עדיין אין רעיונות</div>
+            <p>היה הראשון לשתף רעיון!</p>
+          </div>
+        </div>
 
-    <section class="review">
-      <h2>⚠️ בבדיקה (מעל 10 דיסלייקים)</h2>
-      <div id="review-list"></div>
-      <p id="review-empty" class="empty" hidden>אין רעיונות בבדיקה</p>
-    </section>
+        <div class="card review-section">
+          <h2 class="card-title">⚠️ בבדיקה (מעל 10 דיסלייקים)</h2>
+          <div id="review-list" class="review-grid"></div>
+          <div id="review-empty" class="empty-state hidden">
+            <div class="empty-state-icon">✅</div>
+            <div class="empty-state-title">אין רעיונות בבדיקה</div>
+            <p>הקהילה עדיין לא דחתה רעיונות</p>
+          </div>
+        </div>
+      </section>
+    </div>
   </main>
 
+  <div id="toast" class="toast"></div>
   <script src="app.js"></script>
 </body>
 </html>
