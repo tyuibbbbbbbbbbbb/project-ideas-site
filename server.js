@@ -177,18 +177,62 @@ app.post('/api/ideas/:id/done', (req, res) => {
 });
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin1234';
+if (!process.env.ADMIN_PASSWORD) {
+  console.warn('WARNING: ADMIN_PASSWORD not set; using insecure default "admin1234"');
+}
+
+const loginAttempts = new Map();
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOGIN_LOCKOUT_MS = 15 * 60 * 1000;
+
+function getClientIp(req) {
+  return (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress || 'unknown';
+}
+
+function isLoginBlocked(ip) {
+  const rec = loginAttempts.get(ip);
+  return !!rec && rec.blockedUntil > Date.now();
+}
+
+function recordLoginAttempt(ip, success) {
+  if (success) {
+    loginAttempts.delete(ip);
+    return;
+  }
+  const now = Date.now();
+  const rec = loginAttempts.get(ip) || { count: 0, blockedUntil: 0 };
+  if (rec.blockedUntil > now) return;
+  rec.count++;
+  if (rec.count >= MAX_LOGIN_ATTEMPTS) {
+    rec.blockedUntil = now + LOGIN_LOCKOUT_MS;
+    rec.count = 0;
+  }
+  loginAttempts.set(ip, rec);
+}
 
 function requireAdmin(req, res, next) {
+  const ip = getClientIp(req);
+  if (isLoginBlocked(ip)) {
+    return res.status(429).json({ error: 'יותר מדי ניסיונות כושלים. נסה שוב מאוחר יותר.' });
+  }
   if (req.headers['x-admin-password'] !== ADMIN_PASSWORD) {
+    recordLoginAttempt(ip, false);
     return res.status(401).json({ error: 'סיסמה שגויה' });
   }
+  recordLoginAttempt(ip, true);
   next();
 }
 
 app.post('/api/admin/login', (req, res) => {
+  const ip = getClientIp(req);
+  if (isLoginBlocked(ip)) {
+    return res.status(429).json({ error: 'יותר מדי ניסיונות כושלים. נסה שוב מאוחר יותר.' });
+  }
   if (req.body.password !== ADMIN_PASSWORD) {
+    recordLoginAttempt(ip, false);
     return res.status(401).json({ error: 'סיסמה שגויה' });
   }
+  recordLoginAttempt(ip, true);
   res.json({ ok: true });
 });
 
