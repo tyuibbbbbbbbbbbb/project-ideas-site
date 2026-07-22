@@ -5,7 +5,6 @@ const adminList = document.getElementById('admin-list');
 const adminEmpty = document.getElementById('admin-empty');
 const toast = document.getElementById('toast');
 
-let password = sessionStorage.getItem('adminPassword') || '';
 let categories = [];
 
 function escapeAttr(s) {
@@ -63,14 +62,13 @@ function renderAdminCard(idea) {
 async function api(path, options = {}) {
   const res = await fetch(path, {
     ...options,
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      'X-Admin-Password': password,
       ...(options.headers || {}),
     },
   });
   if (res.status === 401) {
-    sessionStorage.removeItem('adminPassword');
     location.reload();
     throw new Error('unauthorized');
   }
@@ -79,7 +77,12 @@ async function api(path, options = {}) {
 
 async function loadAdmin() {
   categories = await fetch('/api/categories').then((r) => r.json());
-  const res = await api('/api/admin/ideas');
+  const res = await fetch('/api/admin/ideas', { credentials: 'include' });
+  if (res.status === 401) {
+    loginSection.classList.remove('hidden');
+    adminSection.classList.add('hidden');
+    return;
+  }
   const ideas = await res.json();
   adminList.innerHTML = ideas.map(renderAdminCard).join('');
   adminEmpty.classList.toggle('hidden', ideas.length > 0);
@@ -92,12 +95,11 @@ loginForm.addEventListener('submit', async (e) => {
   const pw = document.getElementById('password').value;
   const res = await fetch('/api/admin/login', {
     method: 'POST',
+    credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ password: pw }),
   });
   if (res.ok) {
-    password = pw;
-    sessionStorage.setItem('adminPassword', pw);
     loadAdmin();
   } else {
     showToast('סיסמה שגויה');
@@ -142,4 +144,4 @@ adminList.addEventListener('click', async (e) => {
   }
 });
 
-if (password) loadAdmin();
+loadAdmin();

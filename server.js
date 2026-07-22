@@ -1,12 +1,14 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const DATA_FILE = path.join(__dirname, 'data.json');
 const DISLIKE_THRESHOLD = 10;
 const CATEGORIES = ['אתר', 'תוסף לדפדפן', 'אפליקציה לאנדרואיד', 'תוכנה לווינדוס', 'תוכנה למק', 'אחר'];
+const TOKEN_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -210,16 +212,50 @@ function recordLoginAttempt(ip, success) {
   loginAttempts.set(ip, rec);
 }
 
+function signAdminToken() {
+  const timestamp = Date.now().toString();
+  const signature = crypto.createHmac('sha256', ADMIN_PASSWORD).update(timestamp).digest('hex');
+  return `${timestamp}.${signature}`;
+}
+
+function verifyAdminToken(token) {
+  if (typeof token !== 'string') return false;
+  const [timestamp, signature] = token.split('.');
+  if (!timestamp || !signature || !/^\d+$/.test(timestamp)) return false;
+  if (Date.now() - parseInt(timestamp, 10) > TOKEN_MAX_AGE_MS) return false;
+  const expected = crypto.createHmac('sha256', ADMIN_PASSWORD).update(timestamp).digest('hex');
+  if (signature.length !== expected.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+}
+
+function parseCookies(req) {
+  const cookies = {};
+  const raw = req.headers.cookie || '';
+  raw.split(';').forEach((pair) => {
+    const idx = pair.indexOf('=');
+    if (idx === -1) return;
+    const key = decodeURIComponent(pair.slice(0, idx).trim());
+    const value = decodeURIComponent(pair.slice(idx + 1).trim());
+    cookies[key] = value;
+  });
+  return cookies;
+}
+
+function adminCookie(value, maxAge, secure) {
+  const age = maxAge === 0 ? 'Max-Age=0' : `Max-Age=${Math.round(maxAge / 1000)}`;
+  const flags = ['Path=/', 'HttpOnly', 'SameSite=Strict', secure ? 'Secure' : '', age].filter(Boolean).join('; ');
+  return `adminToken=${encodeURIComponent(value || '')}; ${flags}`;
+}
+
+function isSecureRequest(req) {
+  return req.headers['x-forwarded-proto'] === 'https' || req.socket.encrypted;
+}
+
 function requireAdmin(req, res, next) {
-  const ip = getClientIp(req);
-  if (isLoginBlocked(ip)) {
-    return res.status(429).json({ error: 'יותר מדי ניסיונות כושלים. נסה שוב מאוחר יותר.' });
+  const cookies = parseCookies(req);
+  if (!verifyAdminToken(cookies.adminToken)) {
+    return res.status(401).json({ error: 'אינך מחובר' });
   }
-  if (req.headers['x-admin-password'] !== ADMIN_PASSWORD) {
-    recordLoginAttempt(ip, false);
-    return res.status(401).json({ error: 'סיסמה שגויה' });
-  }
-  recordLoginAttempt(ip, true);
   next();
 }
 
@@ -233,6 +269,12 @@ app.post('/api/admin/login', (req, res) => {
     return res.status(401).json({ error: 'סיסמה שגויה' });
   }
   recordLoginAttempt(ip, true);
+  res.setHeader('Set-Cookie', adminCookie(signAdminToken(), TOKEN_MAX_AGE_MS, isSecureRequest(req)));
+  res.json({ ok: true });
+});
+
+app.post('/api/admin/logout', (req, res) => {
+  res.setHeader('Set-Cookie', adminCookie('', 0, isSecureRequest(req)));
   res.json({ ok: true });
 });
 
