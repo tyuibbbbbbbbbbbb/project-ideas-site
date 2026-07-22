@@ -419,6 +419,12 @@ textarea.form-control { min-height: 100px; resize: vertical; }
   color: #065f46;
 }
 
+.vote-btn.nice:hover, .vote-btn.nice.voted {
+  background: #fef3c7;
+  border-color: var(--warning);
+  color: #92400e;
+}
+
 .vote-btn.dislike:hover, .vote-btn.dislike.voted {
   background: #fee2e2;
   border-color: var(--danger);
@@ -432,6 +438,42 @@ textarea.form-control { min-height: 100px; resize: vertical; }
 }
 
 .vote-btn.voted { cursor: default; }
+
+.vote-stats {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.stat-pcts {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.stat-bar {
+  display: flex;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--surface-elevated);
+}
+
+.stat-seg { height: 100%; }
+.stat-seg.like { background: var(--success); }
+.stat-seg.nice { background: var(--warning); }
+.stat-seg.dislike { background: var(--danger); }
+
+.forum-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  margin-top: 4px;
+}
+.forum-link:hover { text-decoration: underline; }
 
 .score {
   margin-right: auto;

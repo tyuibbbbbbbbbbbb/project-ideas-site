@@ -1,7 +1,5 @@
 const ideasList = document.getElementById('ideas-list');
-const reviewList = document.getElementById('review-list');
 const emptyMsg = document.getElementById('empty-msg');
-const reviewEmpty = document.getElementById('review-empty');
 const form = document.getElementById('idea-form');
 const categorySelect = document.getElementById('category');
 const filterBar = document.getElementById('filter-bar');
@@ -60,18 +58,34 @@ function renderCard(idea, index, withVotes, isTop) {
     : '';
   const catBadge = `<span class="badge badge-cat">${escapeHtml(idea.category || 'אחר')}</span>`;
   const voted = votedIdeas()[idea.id];
-  const score = idea.likes - idea.dislikes;
+  const score = (idea.likes || 0) + (idea.nice || 0) - (idea.dislikes || 0);
+  const totalVotes = (idea.likes || 0) + (idea.nice || 0) + (idea.dislikes || 0);
+  const stats = voted && totalVotes > 0
+    ? `<div class="vote-stats">
+         <div class="stat-pcts">👍 ${Math.round((idea.likes / totalVotes) * 100)}% · 🙂 ${Math.round((idea.nice / totalVotes) * 100)}% · 👎 ${Math.round((idea.dislikes / totalVotes) * 100)}%</div>
+         <div class="stat-bar">
+           <div class="stat-seg like" style="width:${(idea.likes / totalVotes) * 100}%"></div>
+           <div class="stat-seg nice" style="width:${(idea.nice / totalVotes) * 100}%"></div>
+           <div class="stat-seg dislike" style="width:${(idea.dislikes / totalVotes) * 100}%"></div>
+         </div>
+       </div>`
+    : '';
   const votes = withVotes
     ? `<div class="idea-card-footer">
-        <button class="vote-btn like${voted === 'like' ? ' voted' : ''}" data-id="${idea.id}" data-type="like" ${voted ? 'disabled' : ''}>👍 ${idea.likes}</button>
-        <button class="vote-btn dislike${voted === 'dislike' ? ' voted' : ''}" data-id="${idea.id}" data-type="dislike" ${voted ? 'disabled' : ''}>👎 ${idea.dislikes}</button>
+        <button class="vote-btn like${voted === 'like' ? ' voted' : ''}" data-id="${idea.id}" data-type="like" ${voted ? 'disabled' : ''}>👍 ${idea.likes || 0}</button>
+        <button class="vote-btn nice${voted === 'nice' ? ' voted' : ''}" data-id="${idea.id}" data-type="nice" ${voted ? 'disabled' : ''}>🙂 ${idea.nice || 0}</button>
+        <button class="vote-btn dislike${voted === 'dislike' ? ' voted' : ''}" data-id="${idea.id}" data-type="dislike" ${voted ? 'disabled' : ''}>👎 ${idea.dislikes || 0}</button>
         <span class="score">ניקוד: ${score}</span>
       </div>
+      ${stats}
       <div class="idea-actions">
         ${idea.progress === 'open' ? `<button class="take-btn" data-id="${idea.id}">🙋 אני לוקח את הפרויקט</button>` : ''}
         ${idea.progress === 'taken' ? `<button class="done-btn" data-id="${idea.id}">✅ סמן כבוצע</button>` : ''}
       </div>`
-    : `<div class="idea-card-footer"><span>👍 ${idea.likes} · 👎 ${idea.dislikes}</span></div>`;
+    : `<div class="idea-card-footer"><span>👍 ${idea.likes || 0} · � ${idea.nice || 0} · �👎 ${idea.dislikes || 0}</span></div>`;
+  const forumLinkHtml = idea.progress === 'done' && idea.forumLink
+    ? `<a class="forum-link" href="${escapeHtml(idea.forumLink)}" target="_blank" rel="noopener">📎 פוסט בפורום מתמחים טופ</a>`
+    : '';
   const image = idea.imageUrl
     ? `<img class="idea-card-image" src="${escapeHtml(idea.imageUrl)}" alt="הדמיה של הרעיון" loading="lazy" onerror="this.remove()" />`
     : '';
@@ -84,6 +98,7 @@ function renderCard(idea, index, withVotes, isTop) {
       </div>
       <div>${topBadge}${catBadge}${progressBadge}</div>
       ${idea.description ? `<p class="idea-card-desc">${escapeHtml(idea.description)}</p>` : ''}
+      ${forumLinkHtml}
       <p class="idea-card-meta">מאת: ${escapeHtml(idea.author || 'אנונימי')} · ${new Date(idea.createdAt).toLocaleDateString('he-IL')}</p>
       ${votes}
     </div>
@@ -106,18 +121,13 @@ async function loadIdeas() {
   if (searchInput.value.trim()) params.set('search', searchInput.value.trim());
   if (currentSort) params.set('sort', currentSort);
 
-  const [ideas, review] = await Promise.all([
-    fetch('/api/ideas?' + params.toString()).then((r) => r.json()),
-    fetch('/api/review').then((r) => r.json()),
-  ]);
+  const ideas = await fetch('/api/ideas?' + params.toString()).then((r) => r.json());
 
   const isSortedByTop = currentSort === 'top';
   const isTop = (i) => isSortedByTop && !searchInput.value.trim() && ideas[0] && ideas[0].id === i.id;
 
   ideasList.innerHTML = ideas.map((i, idx) => renderCard(i, idx, true, isTop(i))).join('');
   emptyMsg.classList.toggle('hidden', ideas.length > 0);
-  reviewList.innerHTML = review.map((i, idx) => renderCard(i, idx, false, false)).join('');
-  reviewEmpty.classList.toggle('hidden', review.length > 0);
 }
 
 form.addEventListener('submit', async (e) => {
@@ -209,8 +219,20 @@ ideasList.addEventListener('click', async (e) => {
   }
   const doneBtn = e.target.closest('.done-btn');
   if (doneBtn) {
-    if (!confirm('לסמן את הפרויקט כבוצע?')) return;
-    const res = await fetch(`/api/ideas/${doneBtn.dataset.id}/done`, { method: 'POST' });
+    const forumLink = prompt('הדבק קישור לפוסט בפורום מתמחים טופ שמסביר על הפרויקט שבוצע:');
+    if (!forumLink || !forumLink.trim()) {
+      showToast('חובה לצרף קישור לפוסט');
+      return;
+    }
+    if (!/^https?:\/\/[^\s]*mitmachim\.top[^\s]*$/i.test(forumLink.trim())) {
+      showToast('הקישור חייב להיות מאתר מתמחים טופ');
+      return;
+    }
+    const res = await fetch(`/api/ideas/${doneBtn.dataset.id}/done`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ forumLink: forumLink.trim() }),
+    });
     if (res.ok) {
       showToast('הפרויקט סומן כבוצע! 🎉');
     } else {

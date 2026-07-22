@@ -30,6 +30,8 @@ function normalize(idea) {
     progress: 'open',
     takenBy: null,
     voters: {},
+    nice: 0,
+    forumLink: null,
     ...idea,
   };
 }
@@ -61,9 +63,9 @@ app.get('/api/ideas', (req, res) => {
   if (sort === 'newest') {
     ideas.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   } else if (sort === 'likes') {
-    ideas.sort((a, b) => b.likes - a.likes);
+    ideas.sort((a, b) => (b.likes + b.nice) - (a.likes + a.nice));
   } else {
-    ideas.sort((a, b) => (b.likes - b.dislikes) - (a.likes - a.dislikes));
+    ideas.sort((a, b) => ((b.likes + b.nice) - b.dislikes) - ((a.likes + a.nice) - a.dislikes));
   }
   res.json(ideas.map(({ voters, ...i }) => i));
 });
@@ -107,7 +109,7 @@ app.post('/api/ideas', (req, res) => {
 
 app.post('/api/ideas/:id/vote', (req, res) => {
   const { type, voter } = req.body;
-  if (type !== 'like' && type !== 'dislike') {
+  if (type !== 'like' && type !== 'dislike' && type !== 'nice') {
     return res.status(400).json({ error: 'סוג הצבעה לא תקין' });
   }
   if (!voter || typeof voter !== 'string') {
@@ -125,6 +127,7 @@ app.post('/api/ideas/:id/vote', (req, res) => {
   }
   idea.voters[voter] = type;
   if (type === 'like') idea.likes++;
+  else if (type === 'nice') idea.nice++;
   else idea.dislikes++;
   if (idea.dislikes > DISLIKE_THRESHOLD) idea.status = 'review';
   data.ideas[idx] = idea;
@@ -154,6 +157,10 @@ app.post('/api/ideas/:id/take', (req, res) => {
 });
 
 app.post('/api/ideas/:id/done', (req, res) => {
+  const { forumLink } = req.body;
+  if (!forumLink || !/^https?:\/\/[^\s]*mitmachim\.top[^\s]*$/i.test(forumLink)) {
+    return res.status(400).json({ error: 'חובה לצרף קישור תקין לפורום מתמחים טופ' });
+  }
   const data = loadData();
   const idx = data.ideas.findIndex((i) => i.id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: 'הרעיון לא נמצא' });
@@ -162,6 +169,7 @@ app.post('/api/ideas/:id/done', (req, res) => {
     return res.status(400).json({ error: 'אפשר לסמן כבוצע רק רעיון שנלקח' });
   }
   idea.progress = 'done';
+  idea.forumLink = forumLink.trim();
   data.ideas[idx] = idea;
   saveData(data);
   const { voters, ...out } = idea;
@@ -194,7 +202,7 @@ app.put('/api/admin/ideas/:id', requireAdmin, (req, res) => {
   const idx = data.ideas.findIndex((i) => i.id === req.params.id);
   if (idx === -1) return res.status(404).json({ error: 'הרעיון לא נמצא' });
   const idea = normalize(data.ideas[idx]);
-  const { title, description, author, category, progress, takenBy, status, likes, dislikes, imageUrl } = req.body;
+  const { title, description, author, category, progress, takenBy, status, likes, dislikes, nice, forumLink, imageUrl } = req.body;
   if (title !== undefined) idea.title = String(title).trim();
   if (description !== undefined) idea.description = String(description).trim();
   if (author !== undefined) idea.author = String(author).trim() || 'אנונימי';
@@ -204,6 +212,8 @@ app.put('/api/admin/ideas/:id', requireAdmin, (req, res) => {
   if (status !== undefined && ['active', 'review'].includes(status)) idea.status = status;
   if (likes !== undefined && Number.isInteger(likes) && likes >= 0) idea.likes = likes;
   if (dislikes !== undefined && Number.isInteger(dislikes) && dislikes >= 0) idea.dislikes = dislikes;
+  if (nice !== undefined && Number.isInteger(nice) && nice >= 0) idea.nice = nice;
+  if (forumLink !== undefined) idea.forumLink = forumLink ? String(forumLink).trim() : null;
   if (imageUrl !== undefined) idea.imageUrl = imageUrl || null;
   data.ideas[idx] = idea;
   saveData(data);
