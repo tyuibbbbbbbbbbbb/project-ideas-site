@@ -33,8 +33,8 @@ if (!getAdminPasswordHash()) {
     setAdminPasswordHash(envPw);
     console.log('Admin password initialised from ADMIN_PASSWORD env var');
   } else {
-    setAdminPasswordHash('admin1234');
-    console.warn('WARNING: No ADMIN_PASSWORD env var. Using insecure default "admin1234". Change it from the admin panel!');
+    setAdminPasswordHash('123456');
+    console.warn('WARNING: No ADMIN_PASSWORD env var. Using insecure default "123456". Change it from the admin panel!');
   }
 }
 
@@ -143,8 +143,7 @@ function verifyAdminToken(token) {
 
 // ── Brute-force protection ──────────────────────────────
 const loginAttempts = new Map();
-const MAX_LOGIN_ATTEMPTS = 5;
-const LOGIN_LOCKOUT_MS = 15 * 60 * 1000;
+const LOGIN_LOCKOUT_MS = 30 * 1000; // 30 seconds between attempts
 
 function getClientIp(req) {
   return (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || req.socket.remoteAddress || 'unknown';
@@ -161,13 +160,8 @@ function recordLoginAttempt(ip, success) {
     return;
   }
   const now = Date.now();
-  const rec = loginAttempts.get(ip) || { count: 0, blockedUntil: 0 };
-  if (rec.blockedUntil > now) return;
-  rec.count++;
-  if (rec.count >= MAX_LOGIN_ATTEMPTS) {
-    rec.blockedUntil = now + LOGIN_LOCKOUT_MS;
-    rec.count = 0;
-  }
+  const rec = loginAttempts.get(ip) || { blockedUntil: 0 };
+  rec.blockedUntil = now + LOGIN_LOCKOUT_MS;
   loginAttempts.set(ip, rec);
 }
 
