@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ניהול - אתר הפרויקטים</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=3" />
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <h1>🔧 ניהול אתר הפרויקטים</h1>
+      <p><a href="/" class="header-link">→ חזרה לאתר</a></p>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="container">
+      <!-- Login -->
+      <section id="login-section" class="card admin-login">
+        <h2 class="card-title">כניסת מנהל</h2>
+        <form id="login-form" class="idea-form">
+          <div class="form-group">
+            <label for="password">סיסמת ניהול</label>
+            <input type="password" id="password" class="form-control" placeholder="הזן סיסמה" required />
+          </div>
+          <button type="submit" class="btn btn-primary">כניסה</button>
+        </form>
+      </section>
+
+      <!-- Admin panel -->
+      <section id="admin-section" class="hidden">
+        <div class="admin-tabs">
+          <button class="admin-tab active" data-tab="ideas">הרעיונות</button>
+          <button class="admin-tab" data-tab="users">משתמשים</button>
+          <button class="admin-tab" data-tab="flags">דגלים</button>
+          <button class="admin-tab" data-tab="settings">הגדרות</button>
+        </div>
+
+        <div id="tab-ideas">
+          <h2 class="card-title">כל הרעיונות</h2>
+          <div id="admin-list" class="admin-list"></div>
+          <div id="admin-empty" class="empty-state hidden">
+            <div class="empty-state-icon">📂</div>
+            <div class="empty-state-title">אין רעיונות</div>
+            <p>עדיין לא נוספו רעיונות לאתר</p>
+          </div>
+        </div>
+
+        <div id="tab-users" class="hidden">
+          <h2 class="card-title">משתמשים רשומים</h2>
+          <div id="users-list" class="admin-list"></div>
+        </div>
+
+        <div id="tab-flags" class="hidden">
+          <h2 class="card-title">דגלים ממתינים</h2>
+          <div id="flags-list" class="admin-list"></div>
+        </div>
+
+        <div id="tab-settings" class="hidden">
+          <h2 class="card-title">שינוי סיסמת מנהל</h2>
+          <form id="change-pw-form" class="idea-form" style="max-width:400px">
+            <div class="form-group">
+              <label for="current-pw">סיסמה נוכחית</label>
+              <input type="password" id="current-pw" class="form-control" required />
+            </div>
+            <div class="form-group">
+              <label for="new-pw">סיסמה חדשה</label>
+              <input type="password" id="new-pw" class="form-control" required minlength="6" />
+            </div>
+            <button type="submit" class="btn btn-primary">שנה סיסמה</button>
+          </form>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="toast" class="toast"></div>
+  <script src="admin.js?v=4"></script>
+</body>
+</html>

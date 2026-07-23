@@ -7,43 +7,25 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=2" />
+  <link rel="stylesheet" href="style.css?v=10" />
 </head>
 <body>
   <header class="header">
-    <div class="container">
-      <h1>💡 אתר הפרויקטים</h1>
-      <p>יש לך רעיון אבל אין לך זמן או ידע לפתח אותו? שתף אותו כאן! מחפש פרויקט לעבוד עליו? מצא רעיון מהרשימה!</p>
-      <a href="admin.html" class="header-link">🔧 כניסת מנהל</a>
+    <div class="container header-row">
+      <div>
+        <h1><img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f4a1/512.webp" alt="bulb" class="emoji-anim" width="28" height="28" loading="lazy" /> אתר הפרויקטים</h1>
+        <p>יש לך רעיון אבל אין לך זמן או ידע לפתח אותו? שתף אותו כאן! מחפש פרויקט לעבוד עליו? מצא רעיון מהרשימה!</p>
+      </div>
+      <div class="header-actions">
+        <button id="toggle-idea-form" class="btn btn-primary btn-sm"><img src="https://fonts.gstatic.com/s/e/notoemoji/latest/2795/512.webp" alt="plus" class="emoji-anim" width="16" height="16" loading="lazy" /> הוסף רעיון</button>
+        <div id="auth-area"></div>
+      </div>
     </div>
   </header>
 
   <main class="main">
-    <div class="container main-grid">
-      <aside class="card">
-        <h2 class="card-title">הוסף רעיון חדש</h2>
-        <form id="idea-form" class="idea-form">
-          <div class="form-group">
-            <label for="title">כותרת הרעיון</label>
-            <input type="text" id="title" class="form-control" placeholder="למשל: אפליקציית ניהול משימות" required maxlength="100" />
-          </div>
-          <div class="form-group">
-            <label for="description">תיאור</label>
-            <textarea id="description" class="form-control" placeholder="תאר את הרעיון בקצרה..." maxlength="1000"></textarea>
-          </div>
-          <div class="form-group">
-            <label for="category">קטגוריה</label>
-            <select id="category" class="form-control"></select>
-          </div>
-          <div class="form-group">
-            <label for="author">שם (אופציונלי)</label>
-            <input type="text" id="author" class="form-control" placeholder="השם שלך" maxlength="50" />
-          </div>
-          <p class="form-hint">🎨 תמונת הדמיה תיווצר אוטומטית עם AI</p>
-          <button type="submit" class="btn btn-primary">פרסם רעיון 🚀</button>
-        </form>
-      </aside>
-
+    <div class="container">
+      <!-- Ideas list -->
       <section>
         <div class="card">
           <div class="toolbar">
@@ -59,7 +41,7 @@
           <div id="filter-bar" class="filter-chips"></div>
           <div id="ideas-list" class="ideas-grid"></div>
           <div id="empty-msg" class="empty-state hidden">
-            <div class="empty-state-icon">💡</div>
+            <div class="empty-state-icon"><img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f4a1/512.webp" alt="bulb" class="emoji-anim" width="48" height="48" loading="lazy" /></div>
             <div class="empty-state-title">עדיין אין רעיונות</div>
             <p>היה הראשון לשתף רעיון!</p>
           </div>
@@ -68,7 +50,89 @@
     </div>
   </main>
 
+  <!-- Add idea modal -->
+  <div id="idea-modal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-content card">
+      <button class="modal-close" id="idea-close">✕</button>
+      <h2 class="card-title">הוסף רעיון חדש</h2>
+      <form id="idea-form" class="idea-form">
+        <div class="form-group">
+          <label for="title">כותרת הרעיון</label>
+          <input type="text" id="title" class="form-control" placeholder="למשל: אפליקציית ניהול משימות" required maxlength="100" />
+        </div>
+        <div class="form-group">
+          <label for="description">תיאור</label>
+          <textarea id="description" class="form-control" placeholder="תאר את הרעיון בקצרה..." maxlength="2000"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="category">קטגוריה</label>
+          <select id="category" class="form-control"></select>
+        </div>
+        <p class="form-hint"><img src="https://fonts.gstatic.com/s/e/notoemoji/latest/2728/512.webp" alt="sparkles" class="emoji-anim" width="16" height="16" loading="lazy" /> תמונת הדמיה תיווצר אוטומטית עם AI</p>
+        <button type="submit" class="btn btn-primary">פרסם רעיון <img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1f680/512.webp" alt="rocket" class="emoji-anim" width="16" height="16" loading="lazy" /></button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Auth modal -->
+  <div id="auth-modal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-content card">
+      <button class="modal-close" id="auth-close">✕</button>
+      <div id="auth-tabs">
+        <button class="auth-tab active" data-tab="login">התחברות</button>
+        <button class="auth-tab" data-tab="register">הרשמה</button>
+      </div>
+      <form id="login-form" class="auth-form">
+        <div class="form-group">
+          <label for="login-username">שם משתמש (מפורום מתמחים טופ)</label>
+          <input type="text" id="login-username" class="form-control" required />
+        </div>
+        <div class="form-group">
+          <label for="login-password">סיסמה</label>
+          <div class="password-input">
+            <input type="password" id="login-password" class="form-control" required />
+            <button type="button" class="toggle-password" data-target="login-password" aria-label="הצג סיסמה"></button>
+          </div>
+        </div>
+        <div class="form-group checkbox-row">
+          <label><input type="checkbox" id="login-remember" /> זכור אותי</label>
+        </div>
+        <button type="submit" class="btn btn-primary">התחבר</button>
+      </form>
+      <form id="register-form" class="auth-form hidden">
+        <div class="form-group">
+          <label for="reg-username">שם משתמש (מפורום מתמחים טופ)</label>
+          <input type="text" id="reg-username" class="form-control" required />
+        </div>
+        <div class="form-group">
+          <label for="reg-password">סיסמה</label>
+          <div class="password-input">
+            <input type="password" id="reg-password" class="form-control" required minlength="4" />
+            <button type="button" class="toggle-password" data-target="reg-password" aria-label="הצג סיסמה"></button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="reg-password-confirm">אימות סיסמה</label>
+          <input type="password" id="reg-password-confirm" class="form-control" required minlength="4" />
+        </div>
+        <p class="form-hint">ההרשמה מאפשרת לך לערוך את הרעיונות שלך, להגיב בדיונים ולדווח על התקדמות פרויקטים.</p>
+        <button type="submit" class="btn btn-primary">הירשם</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Project detail modal -->
+  <div id="project-modal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-content card modal-large">
+      <button class="modal-close" id="project-close">✕</button>
+      <div id="project-detail"></div>
+    </div>
+  </div>
+
   <div id="toast" class="toast"></div>
-  <script src="app.js?v=2"></script>
+  <script src="app.js?v=10"></script>
 </body>
 </html>
